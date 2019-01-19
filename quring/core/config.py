@@ -16,22 +16,3 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Quring; If not, see <http://www.gnu.org/licenses/>.
-
-import logging
-from quring.core import paths
-
-_LOG_FORMAT = '[%(asctime)s][%(levelname)s] %(name)s %(funcName)s:%(message)s'
-
-
-def configure(verbose):
-    root_logger = logging.getLogger('quring')
-    handler = logging.FileHandler(filename=paths.LOG_PATH)
-    formatter = logging.Formatter(_LOG_FORMAT)
-    handler.setFormatter(formatter)
-    root_logger.addHandler(handler)
-    root_logger.setLevel(logging.DEBUG)
-
-    if verbose:
-        handler = logging.StreamHandler()
-        handler.setFormatter(formatter)
-        root_logger.addHandler(handler)

@@ -37,11 +37,16 @@ def cli_parse():
 
 def run():
     from quring.core import logger as log
+    from quring.core import paths
     from quring.gui import main
+    # Make directories
+    paths.make_paths()
     args = cli_parse().parse_args()
+    # Configure logger
     log.configure(args.verbose)
     logger = logging.getLogger('quring.init')
     logger.info('Running Quring...')
+    # Run run run
     main.start()
 
 

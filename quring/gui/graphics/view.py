@@ -17,19 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with Quring; If not, see <http://www.gnu.org/licenses/>.
 
-from PySide2.QtWidgets import QWidget
-from PySide2.QtWidgets import QVBoxLayout
-
-from quring.gui.graphics import scene
-from quring.gui.graphics import view
+from PySide2.QtWidgets import QGraphicsView
 
 
-class CentralWidget(QWidget):
+class AutomataView(QGraphicsView):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        vbox = QVBoxLayout(self)
-        self._view = view.AutomataView()
-        self._scene = scene.Scene(self._view)
-        self._view.setScene(self._scene)
-        vbox.addWidget(self._view)

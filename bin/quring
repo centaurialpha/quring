@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+# Copyright 2019 - Gabriel Acosta <acostadariogabriel@gmail.com>
+#
+# This file is part of Quring.
+#
+# Quring is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# any later version.
+#
+# Quring is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Quring; If not, see <http://www.gnu.org/licenses/>.
+
+"""Script to run Quring"""
+import os
+import sys
+import argparse
+import logging
+
+project_basedir = os.path.abspath(os.path.dirname(os.path.dirname(os.path.realpath(sys.argv[0]))))
+if project_basedir not in sys.path:
+    sys.path.insert(0, project_basedir)
+
+
+def cli_parse():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-v', '--verbose', action='store_true', help='Set the log in verbose')
+    return parser
+
+
+def run():
+    from quring.core import logger as log
+    from quring.gui import main
+    args = cli_parse().parse_args()
+    log.configure(args.verbose)
+    logger = logging.getLogger('quring.init')
+    logger.info('Running Quring...')
+    main.start()
+
+
+if __name__ == '__main__':
+    run()

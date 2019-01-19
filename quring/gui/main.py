@@ -16,3 +16,23 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Quring; If not, see <http://www.gnu.org/licenses/>.
+import sys
+import logging
+from PySide2.QtWidgets import QMainWindow
+from PySide2.QtWidgets import QApplication
+
+logger = logging.getLogger('quring.main_window')
+
+
+class MainWindow(QMainWindow):
+
+    def __init__(self):
+        super().__init__()
+
+
+def start():
+    app = QApplication(sys.argv)
+    main_window = MainWindow()
+    logger.info('Showing main window')
+    main_window.show()
+    sys.exit(app.exec_())

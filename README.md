@@ -1,4 +1,4 @@
-# Quring
+# Quring [![Build Status](https://travis-ci.org/centaurialpha/quring.svg?branch=master)](https://travis-ci.org/centaurialpha/quring) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat)](http://makeapullrequest.com)
 
 ## How to run from sources
 

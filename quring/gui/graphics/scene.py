@@ -47,6 +47,7 @@ class Scene(QGraphicsScene):
             item.setPos(
                 event.scenePos() - QPointF(item.boundingRect().width() / 2, item.boundingRect().height() / 2))
             self.addItem(item)
+
         elif self._mode == ItemMode.SELECT:
             super().mousePressEvent(event)
 
@@ -71,13 +72,22 @@ class StateItem(QGraphicsItem):
     def __init__(self, view):
         super().__init__()
         global _GLOBAL_STATE_NUMBER
-        _GLOBAL_STATE_NUMBER = _GLOBAL_STATE_NUMBER + 1
+        _GLOBAL_STATE_NUMBER += 1
+        self._state_number = _GLOBAL_STATE_NUMBER
         self.setFlag(QGraphicsItem.ItemIsSelectable)
         self.setFlag(QGraphicsItem.ItemIsMovable)
         self.setZValue(0)
         self.setAcceptHoverEvents(True)
         self._view = view
         self._hover = False
+
+    @property
+    def state_number(self):
+        return self._state_number
+
+    @state_number.setter
+    def state_number(self, number: int):
+        self._state_number = number
 
     def boundingRect(self):
         return QRectF(0, 0, 30 * 2, 30 * 2)
@@ -93,7 +103,7 @@ class StateItem(QGraphicsItem):
         painter.setPen(pen)
         painter.drawEllipse(self.boundingRect())
 
-        painter.drawText(self.boundingRect(), Qt.AlignCenter, str(_GLOBAL_STATE_NUMBER))
+        painter.drawText(self.boundingRect(), Qt.AlignCenter, str(self.state_number))
 
     def hoverEnterEvent(self, event):
         self._hover = True

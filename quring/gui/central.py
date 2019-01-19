@@ -17,18 +17,12 @@
 # You should have received a copy of the GNU General Public License
 # along with Quring; If not, see <http://www.gnu.org/licenses/>.
 
-import os
-
-HOME = os.path.expanduser('~')
-
-DATA = os.path.join(HOME, '.quring')
-
-LOG_PATH = os.path.join(DATA, 'log.log')
-
-SETTINGS = os.path.join(DATA, 'settings.ini')
+from PySide2.QtWidgets import QWidget
+from PySide2.QtWidgets import QVBoxLayout
 
 
-def make_paths():
-    for path in (DATA, ):
-        if not os.path.exists(path):
-            os.makedirs(path)
+class CentralWidget(QWidget):
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        vbox = QVBoxLayout(self)

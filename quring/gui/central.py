@@ -22,6 +22,7 @@ from PySide2.QtWidgets import QVBoxLayout
 
 from quring.gui.graphics import scene
 from quring.gui.graphics import view
+from quring.gui.tape_widget import TapeWidget
 
 
 class CentralWidget(QWidget):
@@ -29,6 +30,8 @@ class CentralWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         vbox = QVBoxLayout(self)
+        tape = TapeWidget()
+        vbox.addWidget(tape)
         self._view = view.AutomataView()
         self._scene = scene.Scene(self._view)
         self._view.setScene(self._scene)

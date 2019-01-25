@@ -1,155 +1,153 @@
-# -*- coding: utf-8 -*-
-#
-# Copyright 2019 - Gabriel Acosta <acostadariogabriel@gmail.com>
-#
-# This file is part of Quring.
-#
-# Quring is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 3 of the License, or
-# any later version.
-#
-# Quring is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with Quring; If not, see <http://www.gnu.org/licenses/>.
-
 from PySide2.QtWidgets import QWidget
 from PySide2.QtWidgets import QSizePolicy
 from PySide2.QtGui import QPainter
-from PySide2.QtGui import QPainterPath
-from PySide2.QtGui import QFontMetrics
-from PySide2.QtGui import QPolygon
 from PySide2.QtGui import QColor
-from PySide2.QtGui import QPen
-from PySide2.QtGui import QFont
-from PySide2.QtCore import QPoint
-from PySide2.QtCore import QRect
-from PySide2.QtCore import Qt
+# from PySide2.QtGui import QFont
+from PySide2.QtGui import QFontMetrics
 from PySide2.QtCore import QSize
+from PySide2.QtCore import Qt
+from PySide2.QtCore import QRect
+from PySide2.QtCore import QPoint
+from PySide2.QtCore import QBasicTimer
+# from PySide2.QtCore import QPointF
 
 
-class _Cinta:
+class Tape:
 
-    def __init__(self):
-        self._memory = {}
+    def __init__(self, word: str):
+        self._word = word
 
     def read(self, position: int) -> str:
-        try:
-            return self._memory[position]
-        except KeyError:
-            return "#"
+        return self._word[position]
 
-    def write(self, position: int, value: str):
-        self._memory[position] = value
-
-    def clear(self):
-        self._memory.clear()
-
-    def set_word(self, position: int, word: str):
-        pos = position
-        for char in word:
-            self.write(pos, char)
-            pos += 1
+    def write(self, word: str, position: int):
+        pass
 
 
-class Cinta(QWidget):
+class TapeWidget(QWidget):
+
+    X_MARGIN = 0.0
+    Y_MARGIN = 5.0
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.setFocusPolicy(Qt.StrongFocus)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
-        self._font = QFont('Monospaced')
-        self._font.setStyleHint(QFont.TypeWriter)
-        self._font.setPointSize(11)
-        self._tape = _Cinta()
-        self._tape.set_word(0, 'MECHIII')
+        self._timer = QBasicTimer()
+        self._move = 0
+        self._displace = 0
+        self._seek_accel = 0
+        self._header_pos = 0
+        self._is_seeking = False
+        self._speed = 1.0
+        # self._font = QFont("monospaced")
+        # self._font.setStyleHint(QFont.TypeWriter)
+        # self._font.setPointSize(11)
+
+    @property
+    def speed(self):
+        return self._speed
+
+    @speed.setter
+    def speed(self, value: float):
+        if value <= 0:
+            raise
+        self._speed = value
+
+    def move_to(self, position: int):
+        if self._header_pos == position and self._move == position:
+            return
+        self._move = position
+        self._is_seeking = True
+        self._seek_accel = abs(self._header_pos - position) * self._speed
+        if not self._timer.isActive():
+            self._timer.start(10, self)
+        self.update()
+
+    def move_right(self):
+        self.move_to(self._move + 1)
+
+    def move_left(self):
+        self.move_to(self._move - 1)
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Left:
+            self.move_left()
+        elif event.key() == Qt.Key_Right:
+            self.move_right()
+
+    def timerEvent(self, event):
+        if not self._is_seeking:
+            self._timer.stop()
+            return
+        if self._move < self._header_pos:
+            self._displace += self._seek_accel
+            if abs(self._displace) >= 20:
+                self._header_pos -= 1
+                self._displace = 0
+        else:
+            self._displace -= self._seek_accel
+            if abs(self._displace) >= 20:
+                self._header_pos += 1
+                self._displace = 0
+
+        if self._header_pos == self._move:
+            self._timer.stop()
+            self._is_seeking = False
+        self.update()
 
     def sizeHint(self):
-        return self.minimumSize()
+        return self.minimumSizeHint()
 
-    def minimumSize(self):
+    def minimumSizeHint(self):
         return QSize(0, 40)
-
-    def set_palabra(self, palabra: str):
-        pass
 
     def paintEvent(self, event):
         painter = QPainter(self)
-        painter.setFont(self._font)
-        painter.fillRect(event.rect(), QColor(Qt.white))
-        fm = QFontMetrics(self._font)
-        char_width = fm.width(' ')
-        char_height = fm.height()
-        cw = fm.width(' ') + 15
-        ch = fm.height() + 5
-        # margin = 10
-        # Dibujo la cinta
-        tape_color = QColor(Qt.gray).light(130)
-        rect = QRect(0, 3, self.width(), self.height() - 6)
-        painter.fillRect(rect, tape_color)
-        # Dibujo el borde
-        border_rect = QRect(rect)
-        painter.setPen(Qt.gray)
-        painter.drawLine(border_rect.topLeft(), border_rect.topRight())
-        painter.drawLine(border_rect.bottomLeft(), border_rect.bottomRight())
+        painter.setPen(Qt.white)
+        painter.setBrush(Qt.white)
+        painter.drawRect(event.rect())
+        painter.setPen(Qt.lightGray)
+        r = QRect(event.rect()).adjusted(
+            TapeWidget.X_MARGIN, TapeWidget.Y_MARGIN,
+            -TapeWidget.X_MARGIN, -TapeWidget.Y_MARGIN
+        )
+        # Draw tape
+        painter.fillRect(r, QColor(Qt.gray).light(150))
+        painter.drawLine(r.topLeft(), r.topRight())
+        painter.drawLine(r.bottomLeft(), r.bottomRight())
 
+        fm = QFontMetrics(self.font())
         center = QPoint(self.width() / 2, self.height() / 2)
-        # Dibujo cuadraditos
-        # tape_pos = 0
-        x = center.x() + cw / 2
+
+        cw = fm.width(' ') + 15
+        # ch = fm.height() + 5
+
+        x = self._displace + center.x() + cw / 2
         while x > 0:
             x -= cw
-            painter.drawLine(x, center.y() - ch / 2,
-                             x, center.y() + ch / 2)
-        # x = center.x() + char_width / 2
-        # p = QPen(Qt.red, 4)
-        # painter.setPen(p)
-        # painter.drawPoint(QPoint(x, 10))
+            painter.drawLine(x, r.y() + 5, x, r.bottom() - 5)
 
-        # while x > 0:
-        #     if tape_pos == 0:
-        #         pass
-        #     else:
-        #         painter.drawLine(x, center.y() - ch / 4,
-        #                          x, center.y() + ch / 2)
-        #     painter.drawText((x - cw / 2) - fm.width(' ') / 2, center.y() + 5, self._tape.read(tape_pos))
-        #     x -= cw
-        #     tape_pos -= 1
-        # x = center.x() - cw / 2
-        # while x < self.width():
-        #     painter.drawLine(x, center.y() - ch / 2,
-        #                      x, center.y() + ch / 2)
-        #     painter.drawText((x - cw / 2) - fm.width(' ') / 2, center.y() + 5, self._tape.read(tape_pos))
-        #     x += cw
-        #     tape_pos += 1
+        x = self._displace + center.x() - cw / 2
+        while x < self.width():
+            x += cw
+            painter.drawLine(x, r.y() + 5, x, r.bottom() - 5)
 
-        # Dibujo el cabezal
-        # pen = QPen(Qt.black, 2)
-        # painter.setRenderHint(painter.Antialiasing)
-        # painter.setPen(pen)
-        # # pen.setCapStyle(Qt.RoundCap)
-        # poly = QPolygon()
-        # x = center.x() - 10
-        # poly << QPoint(x, 1) << QPoint(x + 20, 1) << QPoint(x + 20, 7) << \
-        #     QPoint(x + 10, 13) << QPoint(x, 7)
-        # path = QPainterPath()
-        # path.addPolygon(poly)
-        # painter.fillPath(path, QColor("#2196F3"))
-        # painter.drawPolygon(poly)
+        # Draw head
+        color = QColor('#00a8ff')
+        color.setAlpha(100)
+        painter.setBrush(color)
+        painter.drawRect(center.x() - 15, 3, 29, 33)
 
 
 if __name__ == '__main__':
     from PySide2.QtWidgets import QApplication
-    from PySide2.QtWidgets import QVBoxLayout
     from PySide2.QtWidgets import QDialog
+    from PySide2.QtWidgets import QVBoxLayout
     app = QApplication([])
-    d = QDialog()
-    box = QVBoxLayout(d)
-    box.setContentsMargins(0, 0, 0, 0)
-    cinta = Cinta()
-    box.addWidget(cinta)
-    d.show()
+    dialog = QDialog()
+    vbox = QVBoxLayout(dialog)
+    w = TapeWidget()
+    vbox.addWidget(w)
+    dialog.show()
     app.exec_()

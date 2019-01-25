@@ -32,6 +32,12 @@ class ItemMode(enum.IntEnum):
     SELECT = 1
 
 
+class StateType(enum.IntEnum):
+    NORMAL = 0
+    INITIAL = 1
+    FINAL = 2
+
+
 class Scene(QGraphicsScene):
 
     def __init__(self, automata_view):
@@ -71,13 +77,14 @@ class StateItem(QGraphicsItem):
 
     def __init__(self, view):
         super().__init__()
-        global _GLOBAL_STATE_NUMBER
-        _GLOBAL_STATE_NUMBER += 1
-        self._state_number = _GLOBAL_STATE_NUMBER
+        self.setAcceptHoverEvents(True)
         self.setFlag(QGraphicsItem.ItemIsSelectable)
         self.setFlag(QGraphicsItem.ItemIsMovable)
         self.setZValue(0)
-        self.setAcceptHoverEvents(True)
+        global _GLOBAL_STATE_NUMBER
+        _GLOBAL_STATE_NUMBER += 1
+        self.state_type = StateType.NORMAL
+        self._state_number = _GLOBAL_STATE_NUMBER
         self._view = view
         self._hover = False
 
@@ -102,6 +109,17 @@ class StateItem(QGraphicsItem):
 
         painter.setPen(pen)
         painter.drawEllipse(self.boundingRect())
+        if self.state_type == StateType.FINAL:
+            painter.drawEllipse(self.boundingRect().adjusted(7, 7, -7, -7))
+        elif self.state_type == StateType.INITIAL:
+            center = QPointF(self.boundingRect().center())
+            center.setX(center.x() - (self.boundingRect().height() * 0.3))
+            up = QPointF(self.boundingRect().topLeft())
+            up.setY(up.y() + (self.boundingRect().height() * 0.3))
+            down = QPointF(self.boundingRect().bottomLeft())
+            down.setY(down.y() - (self.boundingRect().height() * 0.3))
+            triangle = [center, up, down]
+            painter.drawPolygon(triangle)
 
         painter.drawText(self.boundingRect(), Qt.AlignCenter, str(self.state_number))
 

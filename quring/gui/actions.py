@@ -17,23 +17,18 @@
 # You should have received a copy of the GNU General Public License
 # along with Quring; If not, see <http://www.gnu.org/licenses/>.
 
-from PySide2.QtWidgets import QGraphicsView
-from PySide2.QtCore import Qt
-from PySide2.QtGui import QKeySequence
+from PySide2.QtGui import QGuiApplication
+tr = QGuiApplication.translate
 
 
-class AutomataView(QGraphicsView):
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-
-    # def wheelEvent(self, event):
-    #     if event.modifiers() == Qt.ControlModifier:
-    #         self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
-    #         factor = 1.15
-    #         if event.delta() > 0:
-    #             self.scale(factor, factor)
-    #         else:
-    #             self.scale(1.0 / factor, 1.0 / factor)
-    #     else:
-    #         super().wheelEvent(event)
+ACTIONS = (
+    {
+        'menu_bar_name': tr('Quring', '&Help'),
+        'items': (
+            {
+                'item_name': tr('Quring', 'About Qt'),
+                'slot': 'show_about_qt'
+            },
+        )
+    },
+)

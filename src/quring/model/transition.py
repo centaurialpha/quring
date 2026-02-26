@@ -17,9 +17,12 @@
 
 from dataclasses import (
     dataclass,
+    field,
 )
 
 from quring.model.types import Direction
+
+BLANK = "#"
 
 
 @dataclass(frozen=True)
@@ -37,3 +40,37 @@ class TransitionFunction:
     def __repr__(self) -> str:
         arrow = "L" if self.move == Direction.LEFT else "R"
         return f"({self.read!r} -> {self.write!r}, {arrow})"
+
+
+@dataclass
+class Transition:
+    """
+    A directed edge between two states.
+
+    One Transition can carry multiple TransitionFunctions, which represent
+    different symbols that all trigger the same arc (drawn as a single arrow
+    in the editor, with multiple labels).
+    """
+
+    from_state: int
+    to_state: int
+    functions: list[TransitionFunction] = field(default_factory=list)
+
+    # Control point for the bezier curve in the editor.
+    # (0.0, 0.0) means the view will calculate a default midpoint.
+    control_x: float = 0.0
+    control_y: float = 0.0
+
+    @property
+    def is_self_loop(self) -> bool:
+        return self.from_state == self.to_state
+
+    def match(self, symbol: str) -> TransitionFunction | None:
+        """Return the first function that reads `symbol`, or None."""
+        for function in self.functions:
+            if function.read == symbol:
+                return function
+        return None
+
+    def __repr__(self) -> str:
+        return f"Transition({self.from_state} -> {self.to_state}, functions={self.functions!r})"

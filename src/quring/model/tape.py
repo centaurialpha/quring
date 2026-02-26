@@ -84,6 +84,11 @@ class Tape:
                 self._cells[position] = char
         self._head = start
 
+    def clear(self) -> None:
+        """Erase all content and return the head to position 0."""
+        self._cells.clear()
+        self._head = 0
+
     def snapshot(self) -> TapeSnapshot:
         """Return an immutable copy of the current tape state."""
         return TapeSnapshot(cells=dict(self._cells), head_position=self._head)
@@ -119,7 +124,7 @@ class Tape:
         for position in range(lo, hi + 1):
             symbol = self._cells.get(position, BLANK)
             if position == self._head:
-                parts.append(f"({symbol})")
+                parts.append(f"[{symbol}]")
             else:
                 parts.append(f" {symbol} ")
         return "".join(parts)

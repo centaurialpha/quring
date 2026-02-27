@@ -37,3 +37,8 @@ class MachineStatus(Enum):
     RUNNING = auto()
     ACCEPTED = auto()
     JAMMED = auto()
+
+    @property
+    def is_terminal(self) -> bool:
+        """True if the machine can no longer advance (accepted or jammed)."""
+        return self in (MachineStatus.ACCEPTED, MachineStatus.JAMMED)

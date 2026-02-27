@@ -49,6 +49,19 @@ def build(states: list[tuple], transitions: list[tuple]) -> TuringMachine:
     return machine
 
 
+def make_anb() -> TuringMachine:
+    return build(
+        states=[
+            (0, "q1", StateType.INITIAL),
+            (1, "q2", StateType.FINAL),
+        ],
+        transitions=[
+            (0, 0, [("a", "a", Direction.RIGHT)]),
+            (0, 1, [("b", "b", Direction.RIGHT)]),
+        ],
+    )
+
+
 def make_anbn() -> TuringMachine:
     return build(
         states=[
@@ -71,7 +84,23 @@ def make_anbn() -> TuringMachine:
     )
 
 
+def make_binary_invert():
+    return build(
+        states=[
+            (0, "q0", StateType.INITIAL),
+            (1, "q1", StateType.FINAL),
+        ],
+        transitions=[
+            (0, 0, [("1", "0", Direction.RIGHT)]),
+            (0, 0, [("0", "1", Direction.RIGHT)]),
+            (0, 1, [("#", "#", Direction.RIGHT)]),
+        ],
+    )
+
+
 MACHINES: dict[str, tuple[callable, str]] = {
+    "binary_invert": (make_binary_invert, ""),
+    "anb": (make_anb, "Accepts a^nb"),
     "anbn": (make_anbn, "Accepts a^n b^n - 'aabb', 'aaabb'"),
 }
 
@@ -106,7 +135,7 @@ def show_tape(machine: TuringMachine, padding: int = 3) -> None:
     assert isinstance(machine.current_state_id, int)
     state = machine.get_state(machine.current_state_id)
     name = state.name if state else "-"
-    print(f" state={name:<10s} steps={machine.step_count:>3d} {machine.tape.as_string(padding)}")
+    print(f"state={name:<10s} steps={machine.step_count:>3d} {machine.tape.as_string(padding)}")
 
 
 def run(machine_name: str, input_str: str, max_steps: int = 500) -> TuringMachine | None:
@@ -131,7 +160,44 @@ def run(machine_name: str, input_str: str, max_steps: int = 500) -> TuringMachin
     return machine
 
 
+def show_step(result) -> None:
+    arrow = {Direction.LEFT: "L", Direction.RIGHT: "R"}[result.direction]
+    print(
+        f"q{result.previous_state_id} -> q{result.next_state_id} "
+        f"read={result.symbol_read!r} write={result.symbol_written!r} {arrow}"
+    )
+
+
+def step_through(machine_name: str, input_str: str, max_steps: int = 100) -> TuringMachine | None:
+    """
+    Run a machine one step at a time, printing each transition.
+
+    Examples:
+        step_through("anbn", "ab")
+        step_through("increment", "101")
+        step_through("copy", "aa")
+    """
+
+    machine = _setup(machine_name, input_str)
+    assert machine is not None
+
+    show_tape(machine)
+
+    while not machine.status.is_terminal and machine.step_count < max_steps:
+        result = machine.step()
+        show_step(result)
+        # show_tape(machine)
+
+    if machine.step_count >= max_steps:
+        print("Stop")
+
+    return machine
+
+
 if __name__ == "__main__":
-    available()
+    # available()
     # print(_setup("anbn", "aaaaabbbb"))
-    run("anbn", "abbbbbbbbbbbb")
+    # run("anbn", "abbbbbbbbbbbb")
+    # print(run("anb", "aaaaaaaa"))
+    # print(run("binary_invert", "1001"))
+    step_through("anb", "aab")

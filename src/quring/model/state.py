@@ -19,7 +19,7 @@ from dataclasses import (
     dataclass,
 )
 
-from quring.model.types import StateType
+from quring.model.types import Point, StateType
 
 
 @dataclass
@@ -30,8 +30,7 @@ class State:
 
     # Canvas position — owned by the model so it survives save/load.
     # The view updates these when the user moves a node.
-    x: float = 0.0
-    y: float = 0.0
+    position: Point = Point()
 
     # Optional free-text comment shown as a tooltip in the editor.
     comment: str = ""

@@ -19,6 +19,7 @@ from enum import (
     Enum,
     auto,
 )
+from typing import NamedTuple
 
 
 class Direction(Enum):
@@ -42,3 +43,14 @@ class MachineStatus(Enum):
     def is_terminal(self) -> bool:
         """True if the machine can no longer advance (accepted or jammed)."""
         return self in (MachineStatus.ACCEPTED, MachineStatus.JAMMED)
+
+
+class Point(NamedTuple):
+    """
+    A 2-D canvas coordinate.
+
+    Using NamedTuple instead of a plain tuple gives named access (.x, .y),
+    keeps it immutable, and is directly serializable as a sequence.
+    """
+    x: float = 0.0
+    y: float = 0.0

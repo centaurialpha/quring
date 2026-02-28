@@ -131,11 +131,13 @@ def _setup(machine_name: str, input_str: str) -> TuringMachine | None:
     return machine
 
 
-def show_tape(machine: TuringMachine, padding: int = 3) -> None:
+def show_tape(machine: TuringMachine, step: int | None = None, padding: int = 3) -> None:
     assert isinstance(machine.current_state_id, int)
     state = machine.get_state(machine.current_state_id)
     name = state.name if state else "-"
-    print(f"state={name:<10s} steps={machine.step_count:>3d} {machine.tape.as_string(padding)}")
+    prefix = f"    step {step:>3d} {name:<10s}" if step is not None else f"    {'':>9s} {name:<10s}"
+    suffix = f"     {machine.status}" if machine.status.is_terminal else ""
+    print(f"{prefix} {machine.tape.as_string(padding)}{suffix}")
 
 
 def run(machine_name: str, input_str: str, max_steps: int = 500) -> TuringMachine | None:
@@ -161,10 +163,10 @@ def run(machine_name: str, input_str: str, max_steps: int = 500) -> TuringMachin
 
 
 def show_step(result) -> None:
-    arrow = {Direction.LEFT: "L", Direction.RIGHT: "R"}[result.direction]
+    move = {Direction.LEFT: "L", Direction.RIGHT: "R"}[result.direction]
     print(
-        f"q{result.previous_state_id} -> q{result.next_state_id} "
-        f"read={result.symbol_read!r} write={result.symbol_written!r} {arrow}"
+        f"  {'':>9s}  {'':>10s}  {result.symbol_read}/{result.symbol_written} "
+        f"→ {move}  ({result.previous_state_id} → {result.next_state_id})"
     )
 
 
@@ -181,12 +183,13 @@ def step_through(machine_name: str, input_str: str, max_steps: int = 100) -> Tur
     machine = _setup(machine_name, input_str)
     assert machine is not None
 
-    show_tape(machine)
+    print(f"Machine: {machine_name} input: {input_str!r}")
+    show_tape(machine, step=0)
 
     while not machine.status.is_terminal and machine.step_count < max_steps:
         result = machine.step()
         show_step(result)
-        # show_tape(machine)
+        show_tape(machine, step=machine.step_count)
 
     if machine.step_count >= max_steps:
         print("Stop")
@@ -200,4 +203,6 @@ if __name__ == "__main__":
     # run("anbn", "abbbbbbbbbbbb")
     # print(run("anb", "aaaaaaaa"))
     # print(run("binary_invert", "1001"))
-    step_through("anb", "aab")
+    machine = step_through("anb", "aaaabb")
+    from quring.serialization.serializer import MachineSerializer
+    MachineSerializer.save(machine=machine, path="/tmp/hola.json")

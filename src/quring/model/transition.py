@@ -20,7 +20,7 @@ from dataclasses import (
     field,
 )
 
-from quring.model.types import Direction
+from quring.model.types import Direction, Point
 
 BLANK = "#"
 
@@ -58,8 +58,7 @@ class Transition:
 
     # Control point for the bezier curve in the editor.
     # (0.0, 0.0) means the view will calculate a default midpoint.
-    control_x: float = 0.0
-    control_y: float = 0.0
+    control_point: Point = field(default_factory=Point)
 
     @property
     def is_self_loop(self) -> bool:
